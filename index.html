@@ -50,7 +50,7 @@ footer{color:#68738b;text-align:center;padding:28px;font-size:11px}
 <div class="filter-grid" id="promptPresets"><button data-p="Change the clothing of the person to a black formal suit. Keep the face, pose and background unchanged.">غيّر الملابس</button><button data-p="Remove the person from the image and fill the area naturally with the surrounding background.">شيل الشخص</button><button data-p="Replace the background with a sunset beach. Keep the main subject unchanged.">غيّر الخلفية</button></div>
 <label class="hint" style="display:block;margin-top:12px"><input type="checkbox" id="aiConsent"> أوافق على إرسال هذه الصورة إلى Hugging Face لتنفيذ التعديل (الموافقة لمرة واحدة لكل تعديل)</label>
 <button id="aiBtn" style="width:100%;margin-top:9px">نفّذ التعديل ✦</button>
-<div class="status" id="aiStatus">جاهز. (إصدار 5)</div>
+<div class="status" id="aiStatus">جاهز. (إصدار 6)</div>
 <div class="hint">استخدمه فقط على صور تملكها أو لديك إذن بتعديلها، ولا تستخدمه لانتحال شخصية أو لمحتوى مسيء. التنفيذ قد يستغرق من 30 إلى 90 ثانية، والنتيجة تحل محل الصورة الحالية (يمكنك «تراجع»).</div>
 <details style="margin-top:12px"><summary class="hint" style="cursor:pointer">إعدادات متقدمة</summary>
 <div class="field"><label>معرّف الـ Space</label><input type="text" id="aiSpace" dir="ltr" placeholder="owner/space-name"></div>
@@ -135,6 +135,7 @@ function mapParams(params,fileVal,p){
     let v;
     if(!imageSet&&/image|file/.test(kind)&&!/negative/i.test(n)){v=fileVal;imageSet=true}
     else if(!promptSet&&/prompt|instruction/i.test(n)&&!/negative/i.test(n)){v=p;promptSet=true}
+    else if(/rewrite/i.test(n))v=false;
     else if(q.parameter_has_default)v=q.parameter_default;
     else v='';
     obj[n]=v;arr.push(v);
@@ -196,7 +197,7 @@ async function editViaHttp(host,blob,p,token){
     if(l.startsWith('event:'))ev=l.slice(6).trim();
     else if(l.startsWith('data:')){
       if(ev==='complete'){data=JSON.parse(l.slice(5));break}
-      if(ev==='error')throw new Error('خطأ من النموذج: '+l.slice(5).trim().slice(0,200));
+      if(ev==='error'){const d=l.slice(5).trim();throw new Error(d==='null'||!d?'رفض الـ Space التنفيذ دون تفاصيل (غالباً انتهت حصة GPU المجانية أو الـ Space مشغول)':'خطأ من النموذج: '+d.slice(0,200))}
     }
   }
   const url=pickImageUrl(data);
@@ -227,7 +228,7 @@ $('aiBtn').onclick=async()=>{
   }catch(e){
     console.error('AI edit failed at stage:',aiStage,e);
     const m=String((e&&e.message)||e);
-    if(/quota|gpu|limit|exceed/i.test(m))aiMsg('انتهت حصة الاستخدام المجانية. جرّب بعد قليل أو أضف توكن Hugging Face في الإعدادات المتقدمة.',true);
+    if(/quota|gpu|limit|exceed|دون تفاصيل/i.test(m))aiMsg('غالباً انتهت حصة الاستخدام المجانية أو الـ Space مشغول. أضف توكن Hugging Face (مجاني) في «إعدادات متقدمة» للحصول على حصة أكبر، أو جرّب بعد قليل.',true);
     else aiMsg('فشلت الخطوة: «'+aiStage+'» — '+m,true);
   }finally{btn.disabled=false;$('aiConsent').checked=false}
 };
