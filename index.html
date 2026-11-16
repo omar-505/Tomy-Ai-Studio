@@ -50,7 +50,7 @@ footer{color:#68738b;text-align:center;padding:28px;font-size:11px}
 <div class="filter-grid" id="promptPresets"><button data-p="Change the clothing of the person to a black formal suit. Keep the face, pose and background unchanged.">غيّر الملابس</button><button data-p="Remove the person from the image and fill the area naturally with the surrounding background.">شيل الشخص</button><button data-p="Replace the background with a sunset beach. Keep the main subject unchanged.">غيّر الخلفية</button></div>
 <label class="hint" style="display:block;margin-top:12px"><input type="checkbox" id="aiConsent"> أوافق على إرسال هذه الصورة إلى Hugging Face لتنفيذ التعديل (الموافقة لمرة واحدة لكل تعديل)</label>
 <button id="aiBtn" style="width:100%;margin-top:9px">نفّذ التعديل ✦</button>
-<div class="status" id="aiStatus">جاهز.</div>
+<div class="status" id="aiStatus">جاهز. (إصدار 4)</div>
 <div class="hint">استخدمه فقط على صور تملكها أو لديك إذن بتعديلها، ولا تستخدمه لانتحال شخصية أو لمحتوى مسيء. التنفيذ قد يستغرق من 30 إلى 90 ثانية، والنتيجة تحل محل الصورة الحالية (يمكنك «تراجع»).</div>
 <details style="margin-top:12px"><summary class="hint" style="cursor:pointer">إعدادات متقدمة</summary>
 <div class="field"><label>معرّف الـ Space</label><input type="text" id="aiSpace" dir="ltr" placeholder="owner/space-name"></div>
@@ -142,7 +142,15 @@ $('aiBtn').onclick=async()=>{
     const Client=mod.Client||(mod.default&&mod.default.Client);
     if(!Client)throw new Error('تعذر تحميل مكتبة الاتصال');
     stage='الاتصال بالـ Space ('+space+')';
-    const app=await Client.connect(space,token?{hf_token:token}:{});
+    const opts=token?{hf_token:token}:{};
+    let app;
+    try{app=await Client.connect(space,opts)}
+    catch(e1){
+      if(!/^[\w.-]+\/[\w.-]+$/.test(space))throw e1;
+      stage='الاتصال المباشر بعنوان hf.space';
+      const host='https://'+space.replace('/','-').replace(/[._]/g,'-').toLowerCase()+'.hf.space';
+      app=await Client.connect(host,opts);
+    }
     const api=await app.view_api();
     const names=Object.keys(api.named_endpoints||{});
     if(!names.length)throw new Error('الـ Space لا يعرض واجهة API مسماة');
@@ -171,7 +179,7 @@ $('aiBtn').onclick=async()=>{
     if(out)img.src=URL.createObjectURL(out);else{img.crossOrigin='anonymous';img.onerror=()=>aiMsg('تعذر تحميل الصورة الناتجة (حجب CORS). افتح الرابط يدوياً: '+url,true);img.src=url}
     try{localStorage.setItem('tomy_space',space)}catch(e){}
   }catch(e){
-    console.error(e);
+    console.error('AI edit failed at stage:',stage,e);
     const m=String((e&&e.message)||e);
     if(/quota|gpu|limit|exceed/i.test(m))aiMsg('انتهت حصة الاستخدام المجانية. جرّب بعد قليل أو أضف توكن Hugging Face في الإعدادات المتقدمة.',true);
     else aiMsg('فشلت الخطوة: «'+stage+'» — '+m+(/fetch/i.test(m)?' (مشكلة اتصال/حجب؛ افتح الموقع عبر http/https وليس file:// وعطّل مانع الإعلانات/VPN وجرّب).':'')+' — أو غيّر الـ Space من الإعدادات المتقدمة.',true);
