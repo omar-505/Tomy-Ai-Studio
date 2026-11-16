@@ -50,7 +50,7 @@ footer{color:#68738b;text-align:center;padding:28px;font-size:11px}
 <div class="filter-grid" id="promptPresets"><button data-p="Change the clothing of the person to a black formal suit. Keep the face, pose and background unchanged.">غيّر الملابس</button><button data-p="Remove the person from the image and fill the area naturally with the surrounding background.">شيل الشخص</button><button data-p="Replace the background with a sunset beach. Keep the main subject unchanged.">غيّر الخلفية</button></div>
 <label class="hint" style="display:block;margin-top:12px"><input type="checkbox" id="aiConsent"> أوافق على إرسال هذه الصورة إلى Hugging Face لتنفيذ التعديل (الموافقة لمرة واحدة لكل تعديل)</label>
 <button id="aiBtn" style="width:100%;margin-top:9px">نفّذ التعديل ✦</button>
-<div class="status" id="aiStatus">جاهز. (إصدار 4)</div>
+<div class="status" id="aiStatus">جاهز. (إصدار 5)</div>
 <div class="hint">استخدمه فقط على صور تملكها أو لديك إذن بتعديلها، ولا تستخدمه لانتحال شخصية أو لمحتوى مسيء. التنفيذ قد يستغرق من 30 إلى 90 ثانية، والنتيجة تحل محل الصورة الحالية (يمكنك «تراجع»).</div>
 <details style="margin-top:12px"><summary class="hint" style="cursor:pointer">إعدادات متقدمة</summary>
 <div class="field"><label>معرّف الـ Space</label><input type="text" id="aiSpace" dir="ltr" placeholder="owner/space-name"></div>
@@ -127,6 +127,82 @@ document.querySelectorAll('#promptPresets button').forEach(b=>b.onclick=()=>{$('
 function aiMsg(t,bad){const el=$('aiStatus');el.textContent=t;el.style.color=bad?'#f87171':''}
 function scaledBlob(maxSide){return new Promise(res=>{const k=Math.min(1,maxSide/Math.max(canvas.width,canvas.height));const w=Math.max(8,Math.round(canvas.width*k/8)*8),h=Math.max(8,Math.round(canvas.height*k/8)*8);const t=document.createElement('canvas');t.width=w;t.height=h;t.getContext('2d').drawImage(canvas,0,0,w,h);t.toBlob(res,'image/png')})}
 function pickImageUrl(v){if(!v)return null;if(typeof v==='string')return /^(https?:|data:image)/.test(v)?v:null;if(Array.isArray(v)){for(const x of v){const u=pickImageUrl(x);if(u)return u}return null}if(typeof v==='object')return pickImageUrl(v.url||v.path||v.image||v.value);return null}
+let aiStage='';
+function mapParams(params,fileVal,p){
+  const obj={},arr=[];let imageSet=false,promptSet=false;
+  for(const q of params){
+    const n=q.parameter_name||q.label,kind=((q.component||'')+' '+(q.type&&q.type.type||'')+' '+(q.python_type&&q.python_type.type||'')).toLowerCase();
+    let v;
+    if(!imageSet&&/image|file/.test(kind)&&!/negative/i.test(n)){v=fileVal;imageSet=true}
+    else if(!promptSet&&/prompt|instruction/i.test(n)&&!/negative/i.test(n)){v=p;promptSet=true}
+    else if(q.parameter_has_default)v=q.parameter_default;
+    else v='';
+    obj[n]=v;arr.push(v);
+  }
+  if(!imageSet||!promptSet)throw new Error('واجهة هذا الـ Space غير متوافقة (لا توجد خانة صورة/وصف واضحة)');
+  return {obj,arr};
+}
+function pickEndpoint(api){
+  const names=Object.keys((api&&api.named_endpoints)||{});
+  if(!names.length)throw new Error('الـ Space لا يعرض واجهة API مسماة');
+  const ep=names.find(n=>/infer|edit/i.test(n))||names[0];
+  return {ep,params:api.named_endpoints[ep].parameters||[]};
+}
+async function editViaClient(space,host,blob,p,token){
+  aiStage='تحميل مكتبة الاتصال من jsDelivr';
+  const mod=await import('https://cdn.jsdelivr.net/npm/@gradio/client@1/+esm');
+  const Client=mod.Client||(mod.default&&mod.default.Client);
+  if(!Client)throw new Error('تعذر تحميل مكتبة الاتصال');
+  const opts=token?{hf_token:token}:{};
+  aiStage='الاتصال بالـ Space عبر المكتبة';
+  let app;
+  try{app=await Client.connect(space,opts)}catch(e1){aiStage='الاتصال المباشر بالمكتبة (hf.space)';app=await Client.connect(host,opts)}
+  const {ep,params}=pickEndpoint(await app.view_api());
+  const file=mod.handle_file?mod.handle_file(blob):blob;
+  const {obj}=mapParams(params,file,p);
+  aiStage='تشغيل النموذج (المكتبة)';
+  const res=await app.predict(ep,obj);
+  const url=pickImageUrl(res.data);
+  if(!url)throw new Error('لم يرجع النموذج صورة');
+  return url;
+}
+async function editViaHttp(host,blob,p,token){
+  const H=token?{Authorization:'Bearer '+token}:{};
+  aiStage='HTTP: قراءة config';
+  const cfg=await (await fetch(host+'/config',{headers:H})).json();
+  const prefix=cfg.api_prefix||'';
+  aiStage='HTTP: قراءة واجهة API';
+  let info=null;
+  for(const path of [prefix+'/info','/gradio_api/info','/info']){
+    try{const r=await fetch(host+path,{headers:H});if(r.ok){const j=await r.json();if(j&&j.named_endpoints){info=j;break}}}catch(_){}
+  }
+  if(!info)throw new Error('تعذر قراءة واجهة API للـ Space');
+  const {ep,params}=pickEndpoint(info);
+  aiStage='HTTP: رفع الصورة';
+  const fd=new FormData();fd.append('files',blob,'input.png');
+  const up=await fetch(host+prefix+'/upload',{method:'POST',body:fd,headers:H});
+  if(!up.ok)throw new Error('فشل رفع الصورة ('+up.status+')');
+  const paths=await up.json();
+  const fileVal={path:paths[0],meta:{_type:'gradio.FileData'}};
+  const {arr}=mapParams(params,fileVal,p);
+  aiStage='HTTP: إرسال الطلب';
+  const call=await fetch(host+prefix+'/call'+ep,{method:'POST',headers:Object.assign({'Content-Type':'application/json'},H),body:JSON.stringify({data:arr})});
+  if(!call.ok)throw new Error('رفض الـ Space الطلب ('+call.status+')');
+  const {event_id}=await call.json();
+  aiStage='HTTP: انتظار النتيجة';
+  const txt=await (await fetch(host+prefix+'/call'+ep+'/'+event_id,{headers:H})).text();
+  let ev='',data=null;
+  for(const l of txt.split('\n')){
+    if(l.startsWith('event:'))ev=l.slice(6).trim();
+    else if(l.startsWith('data:')){
+      if(ev==='complete'){data=JSON.parse(l.slice(5));break}
+      if(ev==='error')throw new Error('خطأ من النموذج: '+l.slice(5).trim().slice(0,200));
+    }
+  }
+  const url=pickImageUrl(data);
+  if(!url)throw new Error('لم يرجع النموذج صورة');
+  return url;
+}
 $('aiBtn').onclick=async()=>{
   const p=$('prompt').value.trim();
   if(!p)return alert('اكتب وصف التعديل أولاً');
@@ -134,55 +210,25 @@ $('aiBtn').onclick=async()=>{
   if(!$('aiConsent').checked)return alert('لازم توافق على إرسال الصورة إلى الخدمة الخارجية أولاً');
   const space=$('aiSpace').value.trim()||AI_DEFAULT_SPACE, token=$('aiToken').value.trim();
   if(token&&!token.startsWith('hf_'))return alert('التوكن غير صحيح (يبدأ بـ hf_)');
-  const btn=$('aiBtn');btn.disabled=true;aiMsg('جاري الاتصال بالنموذج...');let stage='تجهيز الصورة';
+  const btn=$('aiBtn');btn.disabled=true;aiMsg('جاري الاتصال بالنموذج... قد يستغرق حتى دقيقة ونصف.');aiStage='تجهيز الصورة';
   try{
     commitAdjustments();
-    stage='تحميل مكتبة الاتصال من jsDelivr';
-    const mod=await import('https://cdn.jsdelivr.net/npm/@gradio/client@1/+esm');
-    const Client=mod.Client||(mod.default&&mod.default.Client);
-    if(!Client)throw new Error('تعذر تحميل مكتبة الاتصال');
-    stage='الاتصال بالـ Space ('+space+')';
-    const opts=token?{hf_token:token}:{};
-    let app;
-    try{app=await Client.connect(space,opts)}
-    catch(e1){
-      if(!/^[\w.-]+\/[\w.-]+$/.test(space))throw e1;
-      stage='الاتصال المباشر بعنوان hf.space';
-      const host='https://'+space.replace('/','-').replace(/[._]/g,'-').toLowerCase()+'.hf.space';
-      app=await Client.connect(host,opts);
-    }
-    const api=await app.view_api();
-    const names=Object.keys(api.named_endpoints||{});
-    if(!names.length)throw new Error('الـ Space لا يعرض واجهة API مسماة');
-    const ep=names.find(n=>/infer|edit/i.test(n))||names[0];
-    const params=api.named_endpoints[ep].parameters||[];
     const blob=await scaledBlob(1024);
-    const file=mod.handle_file?mod.handle_file(blob):blob;
-    const args={};let promptSet=false,imageSet=false;
-    for(const q of params){
-      const n=q.parameter_name||q.label,kind=((q.component||'')+' '+(q.type&&q.type.type||'')+' '+(q.python_type&&q.python_type.type||'')).toLowerCase();
-      if(!imageSet&&/image|file/.test(kind)&&!/negative/i.test(n)){args[n]=file;imageSet=true}
-      else if(!promptSet&&/prompt|instruction/i.test(n)&&!/negative/i.test(n)){args[n]=p;promptSet=true}
-      else if(q.parameter_has_default)args[n]=q.parameter_default;
-      else args[n]='';
-    }
-    if(!imageSet||!promptSet)throw new Error('واجهة هذا الـ Space غير متوافقة (لا توجد خانة صورة/وصف واضحة)');
-    aiMsg('النموذج يعمل الآن... قد يستغرق حتى دقيقة ونصف.');
-    stage='تشغيل النموذج';
-    const res=await app.predict(ep,args);
-    const url=pickImageUrl(res.data);
-    if(!url)throw new Error('لم يرجع النموذج صورة');
-    stage='تحميل الصورة الناتجة';
+    const host=/^https?:\/\//.test(space)?space.replace(/\/$/,''):'https://'+space.replace('/','-').replace(/[._]/g,'-').toLowerCase()+'.hf.space';
+    let url;
+    try{url=await editViaClient(space,host,blob,p,token)}
+    catch(e1){console.warn('Client path failed at',aiStage,e1);url=await editViaHttp(host,blob,p,token)}
+    aiStage='تحميل الصورة الناتجة';
     let out;try{out=await (await fetch(url)).blob()}catch(_){out=null}
     const img=new Image();
     img.onload=()=>{snapshot();canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0);setBaseFromCanvas();$('imageInfo').textContent=canvas.width+' × '+canvas.height+' px';$('newWidth').value=canvas.width;$('newHeight').value=canvas.height;aiMsg('تم التعديل. استخدم «تراجع» لو النتيجة مش مناسبة.');setStatus('تم تعديل الصورة بالذكاء الاصطناعي')};
     if(out)img.src=URL.createObjectURL(out);else{img.crossOrigin='anonymous';img.onerror=()=>aiMsg('تعذر تحميل الصورة الناتجة (حجب CORS). افتح الرابط يدوياً: '+url,true);img.src=url}
     try{localStorage.setItem('tomy_space',space)}catch(e){}
   }catch(e){
-    console.error('AI edit failed at stage:',stage,e);
+    console.error('AI edit failed at stage:',aiStage,e);
     const m=String((e&&e.message)||e);
     if(/quota|gpu|limit|exceed/i.test(m))aiMsg('انتهت حصة الاستخدام المجانية. جرّب بعد قليل أو أضف توكن Hugging Face في الإعدادات المتقدمة.',true);
-    else aiMsg('فشلت الخطوة: «'+stage+'» — '+m+(/fetch/i.test(m)?' (مشكلة اتصال/حجب؛ افتح الموقع عبر http/https وليس file:// وعطّل مانع الإعلانات/VPN وجرّب).':'')+' — أو غيّر الـ Space من الإعدادات المتقدمة.',true);
+    else aiMsg('فشلت الخطوة: «'+aiStage+'» — '+m,true);
   }finally{btn.disabled=false;$('aiConsent').checked=false}
 };
 $('wmBtn').onclick=()=>{if(!beginDestructiveEdit())return alert('ارفع صورة أولاً');let x=+$('wmX').value,y=+$('wmY').value,w=+$('wmW').value,h=+$('wmH').value;if(w<1||h<1||x<0||y<0||x+w>canvas.width||y+h>canvas.height)return alert('تأكد أن المنطقة داخل حدود الصورة');const patchW=Math.min(w,Math.max(1,canvas.width-x)),patchH=Math.min(h,Math.max(1,canvas.height-y));const sx=Math.max(0,Math.min(canvas.width-patchW,x-patchW)),sy=Math.max(0,Math.min(canvas.height-patchH,y-patchH));const patch=ctx.getImageData(sx,sy,patchW,patchH);ctx.putImageData(patch,x,y);setBaseFromCanvas();setStatus('تمت معالجة المنطقة تقريبياً؛ راجع النتيجة')};
