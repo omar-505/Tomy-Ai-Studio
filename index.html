@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>Tomy AI Studio — استوديو الصور الذكي</title>
+<style>
+:root{--bg:#090b13;--panel:#111522;--panel2:#171d2d;--line:#252d40;--text:#f4f6ff;--muted:#9aa5bd;--purple:#8b5cf6;--cyan:#38bdf8;--good:#34d399}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#282052 0,transparent 36%),var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif;min-height:100vh}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;color:white;background:linear-gradient(120deg,#7c3aed,#4f46e5);padding:11px 16px;border-radius:12px;font-weight:700}button.secondary{background:#20283a;border:1px solid var(--line)}button:disabled{opacity:.45;cursor:not-allowed}
+header{height:74px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;background:#0b0e18eF;backdrop-filter:blur(18px);z-index:5}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px}.logo{width:39px;height:39px;border-radius:13px;background:linear-gradient(135deg,#a78bfa,#22d3ee);display:grid;place-items:center;color:#090b13;font-size:22px}
+.header-actions{display:flex;gap:10px;align-items:center}.pill{font-size:12px;color:#c4b5fd;background:#241a40;border:1px solid #49317b;padding:7px 11px;border-radius:20px}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 74px)}aside{border-left:1px solid var(--line);padding:22px 14px;background:#0d111c}.side-title{color:var(--muted);font-size:12px;margin:7px 12px 13px}.nav{display:flex;flex-direction:column;gap:7px}.nav button{background:transparent;text-align:right;color:#aeb8cc;border:1px solid transparent;padding:13px 14px;display:flex;align-items:center;gap:12px}.nav button.active,.nav button:hover{background:#1b2032;border-color:#35304f;color:white}.nav .ico{font-size:18px;width:24px;text-align:center}
+.side-note{margin:26px 5px 0;padding:14px;background:#151a29;border:1px solid var(--line);border-radius:15px;color:var(--muted);font-size:12px;line-height:1.8}
+main{padding:30px;max-width:1500px;width:100%;margin:auto}.hero{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:25px;gap:20px}.eyebrow{color:#a78bfa;font-size:12px;font-weight:bold;letter-spacing:.5px}.hero h1{font-size:29px;margin:9px 0}.hero p{color:var(--muted);margin:0;line-height:1.8}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px}.canvas-card,.tool-card,.feature{background:linear-gradient(160deg,#151b2b,#101522);border:1px solid var(--line);border-radius:19px}.canvas-card{padding:16px;min-height:560px;display:flex;flex-direction:column}.canvas-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.canvas-top strong{font-size:14px}.canvas-wrap{flex:1;min-height:400px;background-color:#0a0e18;background-image:linear-gradient(45deg,#141a28 25%,transparent 25%),linear-gradient(-45deg,#141a28 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#141a28 75%),linear-gradient(-45deg,transparent 75%,#141a28 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0;display:grid;place-items:center;border-radius:13px;overflow:hidden;position:relative}
+#preview{max-width:100%;max-height:540px;object-fit:contain;display:none;filter:none}#empty{color:#8792aa;text-align:center;padding:25px}#empty .big{font-size:48px;margin-bottom:12px}.canvas-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:14px;color:var(--muted);font-size:12px;gap:10px;flex-wrap:wrap}
+.panel-stack{display:flex;flex-direction:column;gap:14px}.tool-card{padding:18px}.tool-card h3{margin:0 0 14px;font-size:16px}.tool-card p,.hint{color:var(--muted);font-size:12px;line-height:1.8}.field{margin:12px 0}.field label{display:block;font-size:12px;color:#c5cce0;margin-bottom:7px}.field input[type=text],.field input[type=number],.field select,.field textarea{width:100%;background:#0b101b;border:1px solid #30394e;color:white;border-radius:10px;padding:11px;outline:none}.field textarea{min-height:90px;resize:vertical}.field input[type=range]{width:100%;accent-color:#8b5cf6}.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1}.drop{border:1px dashed #555078;background:#17152a;border-radius:14px;padding:16px;text-align:center;color:#c4b5fd;margin-bottom:12px}.drop input{display:none}.filter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.filter-grid button{padding:9px 5px;font-size:11px;background:#20283a;border:1px solid #30394e}.filter-grid button.selected{border-color:#a78bfa;background:#30204d}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.feature{padding:16px;cursor:pointer;transition:.2s}.feature:hover{transform:translateY(-2px);border-color:#7352bd}.feature b{display:block;margin:7px 0}.feature span{font-size:22px}.feature small{color:var(--muted);line-height:1.6}
+.status{font-size:12px;color:var(--good);min-height:18px;margin-top:8px}.hidden{display:none!important}.section{display:none}.section.active{display:block}
+footer{color:#68738b;text-align:center;padding:28px;font-size:11px}
+@media(max-width:1000px){.app{grid-template-columns:1fr}aside{border-left:0;border-bottom:1px solid var(--line);padding:10px}.nav{flex-direction:row;overflow:auto}.nav button{white-space:nowrap;padding:10px}.side-title,.side-note{display:none}.workspace{grid-template-columns:1fr}.panel-stack{display:grid;grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){header{padding:0 14px}.pill{display:none}main{padding:18px 12px}.hero{display:block}.hero h1{font-size:23px}.panel-stack,.features{grid-template-columns:1fr}.canvas-card{min-height:420px}.canvas-wrap{min-height:300px}.header-actions button{padding:9px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">✦</div><div>Tomy <span style="color:#a78bfa">AI</span> Studio</div></div><div class="header-actions"><span class="pill">استوديو تعديل الصور الذكي</span><button class="secondary" id="resetBtn">إعادة ضبط</button></div></header>
+<div class="app">
+<aside><div class="side-title">مساحة العمل</div><nav class="nav">
+<button class="active" data-tab="filters"><span class="ico">🎨</span> الفلاتر والتأثيرات</button>
+<button data-tab="enhance"><span class="ico">✨</span> تحسين الجودة</button>
+<button data-tab="resize"><span class="ico">↔️</span> تغيير الحجم</button>
+<button data-tab="ai"><span class="ico">✦</span> تعديل بالذكاء الاصطناعي</button>
+<button data-tab="background"><span class="ico">🪄</span> إزالة الخلفية</button>
+<button data-tab="watermark"><span class="ico">⌫</span> إزالة العلامة المائية</button>
+</nav><div class="side-note">💡 ارفع صورة أولاً، ثم اختر الأداة المناسبة. الفلاتر والمقاسات وإزالة الخلفية داخل متصفحك، والتعديل بالأوامر عبر خدمة خارجية بموافقتك.</div></aside>
+<main>
+<div class="hero"><div><div class="eyebrow">YOUR CREATIVE WORKSPACE</div><h1 id="pageTitle">خلّي صورك تحكي بشكل مختلف</h1><p id="pageDesc">كل أدوات تعديل الصور في مكان واحد — ارفع صورتك وابدأ الإبداع.</p></div><label class="drop" for="fileInput" style="cursor:pointer;min-width:180px">＋ ارفع صورة من جهازك<input id="fileInput" type="file" accept="image/*"></label></div>
+<div class="workspace">
+<section class="canvas-card"><div class="canvas-top"><strong>معاينة الصورة</strong><span id="imageInfo" class="hint">لم يتم اختيار صورة</span></div><div class="canvas-wrap" id="dropZone"><div id="empty"><div class="big">▧</div><b>ابدأ برفع صورة</b><p class="hint">اسحب الصورة هنا أو اضغط على زر رفع صورة من جهازك</p></div><canvas id="preview"></canvas></div><div class="canvas-bottom"><span id="status">جاهز لاستقبال صورتك</span><div class="actions" style="max-width:300px"><button class="secondary" id="undoBtn" disabled>تراجع</button><button id="downloadBtn" disabled>تحميل الصورة ↓</button></div></div></section>
+<div class="panel-stack">
+<section class="tool-card section active" id="filters"><h3>🎨 مكتبة الفلاتر</h3><p>اختر الفلتر أو حرّك أي شريط، وستظهر النتيجة مباشرة.</p><div class="filter-grid" id="filterGrid">
+<button data-filter="none" class="selected">أصلي</button><button data-filter="grayscale(1)">أبيض وأسود</button><button data-filter="sepia(.8)">Vintage</button><button data-filter="contrast(1.25) saturate(1.25)">Vivid</button><button data-filter="brightness(1.15) saturate(.8)">Bright</button><button data-filter="saturate(1.8)">ألوان قوية</button><button data-filter="hue-rotate(35deg)">Warm</button><button data-filter="contrast(1.35)">درامي</button><button data-filter="blur(.6px)">Soft</button></div><div class="field"><label>السطوع <span id="brightnessVal">100%</span></label><input id="brightness" type="range" min="40" max="160" value="100"></div><div class="field"><label>التباين <span id="contrastVal">100%</span></label><input id="contrast" type="range" min="40" max="180" value="100"></div><div class="field"><label>التشبع <span id="saturationVal">100%</span></label><input id="saturation" type="range" min="0" max="200" value="100"></div><div class="hint">تتغير الصورة مباشرة عند اختيار الفلتر أو تحريك أي شريط.</div></section>
+<section class="tool-card section" id="enhance"><h3>✨ تحسين جودة الصورة</h3><p>تحسين حدة وتباين الصورة محلياً مع معاينة مباشرة. رفع الدقة بالذكاء الاصطناعي يحتاج نموذجاً منفصلاً.</p><div class="field"><label>حدة التفاصيل</label><input id="sharpness" type="range" min="0" max="100" value="25"></div><div class="field"><label>تقليل التشويش (تنعيم)</label><input id="denoise" type="range" min="0" max="5" value="0"></div><button id="applyEnhance" style="width:100%">تطبيق التحسين</button><div class="hint">لرفع الدقة الحقيقي 2x/4x نحتاج إضافة نموذج Upscaling مفتوح المصدر وتشغيله محلياً.</div></section>
+<section class="tool-card section" id="resize"><h3>↔️ تغيير حجم الصورة</h3><p>حدد المقاس الجديد بالبكسل.</p><div class="two"><div class="field"><label>العرض</label><input id="newWidth" type="number" min="1" placeholder="العرض"></div><div class="field"><label>الارتفاع</label><input id="newHeight" type="number" min="1" placeholder="الارتفاع"></div></div><label class="hint"><input type="checkbox" id="keepRatio" checked> الحفاظ على تناسب الأبعاد</label><div class="field"><label>قوالب جاهزة</label><select id="preset"><option value="">اختر مقاساً</option><option value="1080,1080">Instagram مربع 1080×1080</option><option value="1080,1350">Instagram Portrait 1080×1350</option><option value="1920,1080">YouTube / Full HD 1920×1080</option><option value="1080,1920">Story / Reel 1080×1920</option></select></div><button id="applyResize" style="width:100%">تطبيق المقاس</button></section>
+<section class="tool-card section" id="ai"><h3>✦ محرر الذكاء الاصطناعي</h3><p>اكتب التعديل اللي عايزه والنموذج ينفّذه على الصورة — مجاني عبر Hugging Face Spaces.</p>
+<div style="border:1px solid #7a5a12;background:#2a2108;border-radius:12px;padding:12px;margin:12px 0;color:#fde68a;font-size:12px;line-height:1.9">⚠️ <b>تنبيه خصوصية:</b> هذه الأداة <b>ترسل الصورة</b> إلى خدمة خارجية (Hugging Face + صاحب الـ Space) لتنفيذ التعديل. لا ترفع صوراً حساسة أو خاصة. الأدوات الأخرى (فلاتر، حجم، خلفية) تعمل داخل متصفحك فقط.</div>
+<div class="field"><label>وصف التعديل (الإنجليزية تعطي أفضل نتيجة)</label><textarea id="prompt" placeholder="Example: Remove the person on the left and fill the area naturally"></textarea></div>
+<div class="filter-grid" id="promptPresets"><button data-p="Change the clothing of the person to a black formal suit. Keep the face, pose and background unchanged.">غيّر الملابس</button><button data-p="Remove the person from the image and fill the area naturally with the surrounding background.">شيل الشخص</button><button data-p="Replace the background with a sunset beach. Keep the main subject unchanged.">غيّر الخلفية</button></div>
+<label class="hint" style="display:block;margin-top:12px"><input type="checkbox" id="aiConsent"> أوافق على إرسال هذه الصورة إلى Hugging Face لتنفيذ التعديل (الموافقة لمرة واحدة لكل تعديل)</label>
+<button id="aiBtn" style="width:100%;margin-top:9px">نفّذ التعديل ✦</button>
+<div class="status" id="aiStatus">جاهز.</div>
+<div class="hint">استخدمه فقط على صور تملكها أو لديك إذن بتعديلها، ولا تستخدمه لانتحال شخصية أو لمحتوى مسيء. التنفيذ قد يستغرق من 30 إلى 90 ثانية، والنتيجة تحل محل الصورة الحالية (يمكنك «تراجع»).</div>
+<details style="margin-top:12px"><summary class="hint" style="cursor:pointer">إعدادات متقدمة</summary>
+<div class="field"><label>معرّف الـ Space</label><input type="text" id="aiSpace" dir="ltr" placeholder="owner/space-name"></div>
+<div class="field"><label>توكن Hugging Face (اختياري — يزيد حصتك المجانية)</label><input type="password" id="aiToken" dir="ltr" placeholder="hf_..." autocomplete="off"></div>
+<div class="hint">التوكن يُحفظ في ذاكرة الصفحة فقط ولا يُخزَّن. استخدم توكنك الشخصي بصلاحية Read فقط، ولا تضعه في الكود أبداً. لو توقف الـ Space الافتراضي، جرّب Space آخر لتعديل الصور بوضع معرّفه هنا.</div></details></section>
+<section class="tool-card section" id="background"><h3>🪄 إزالة الخلفية</h3><p>إزالة الخلفية بنموذج يعمل داخل المتصفح دون رفع الصورة إلى خادم معالجة.</p><button id="bgBtn" style="width:100%">إزالة الخلفية تلقائياً</button><div class="status" id="bgStatus">يتطلب تحميل نموذج إزالة الخلفية لأول مرة واتصالاً بالإنترنت.</div><div class="hint">يتم تنزيل مكتبة النموذج وملفاته عند أول تشغيل من CDN؛ الصورة نفسها لا تغادر المتصفح. راجع README للترخيص.</div></section>
+<section class="tool-card section" id="watermark"><h3>⌫ إزالة العلامة المائية</h3><p>حدد المنطقة المستطيلة التي تملك حق تعديلها لإعادة بنائها بلون/نسيج مجاور بصورة تقريبية.</p><div class="two"><div class="field"><label>بداية X</label><input id="wmX" type="number" value="10"></div><div class="field"><label>بداية Y</label><input id="wmY" type="number" value="10"></div><div class="field"><label>العرض</label><input id="wmW" type="number" value="100"></div><div class="field"><label>الارتفاع</label><input id="wmH" type="number" value="40"></div></div><button id="wmBtn" style="width:100%">معالجة المنطقة المحددة</button><div class="hint">النتيجة تقريبية وليست Inpainting ذكياً. لا تستخدمها لإزالة حقوق ملكية الغير.</div></section>
+</div></div>
+<div class="features"><div class="feature" data-go="filters"><span>🎨</span><b>فلاتر احترافية</b><small>تأثيرات لونية وتحكم يدوي.</small></div><div class="feature" data-go="resize"><span>📐</span><b>مقاسات جاهزة</b><small>جهّز صورك لمنصات التواصل.</small></div><div class="feature" data-go="ai"><span>✦</span><b>مساحة AI</b><small>عدّل صورك بالأوامر النصية (يرسل الصورة لخدمة خارجية بموافقتك).</small></div></div>
+<footer>Tomy AI Studio © 2026 — الفلاتر والحجم والخلفية تعمل داخل متصفحك؛ «التعديل بالذكاء الاصطناعي» يرسل الصورة لخدمة خارجية فقط بعد موافقتك.</footer>
+</main></div>
+<script>
+const $=id=>document.getElementById(id), canvas=$('preview'), ctx=canvas.getContext('2d');
+let original=null, baseCanvas=document.createElement('canvas'), baseCtx=baseCanvas.getContext('2d'), history=[], activeFilter='none', imageName='';
+const titles={filters:['خلّي صورك تحكي بشكل مختلف','طبّق فلاتر وتأثيرات لونية على صورك.'],enhance:['حسّن تفاصيل صورك','أدوات تحسين محلية سريعة.'],resize:['كل مقاس في مكانه','غيّر أبعاد الصورة بسهولة.'],ai:['اطلب التعديل بطريقتك','اكتب وصفاً لما تريد تغييره في الصورة.'],background:['افصل العنصر عن الخلفية','جهّز صورة بخلفية شفافة.'],watermark:['نظّف الصورة','حدد المنطقة التي تريد معالجتها.']};
+function setStatus(t){$('status').textContent=t}
+function hasImage(){return canvas.width>0&&canvas.height>0}
+function snapshot(){if(!hasImage())return;history.push(canvas.toDataURL('image/png'));if(history.length>15)history.shift();$('undoBtn').disabled=false}
+function setBaseFromCanvas(){baseCanvas.width=canvas.width;baseCanvas.height=canvas.height;baseCtx.clearRect(0,0,baseCanvas.width,baseCanvas.height);baseCtx.drawImage(canvas,0,0)}
+function renderAdjustments(){
+  if(!baseCanvas.width)return;
+  const w=baseCanvas.width,h=baseCanvas.height;
+  const source=baseCtx.getImageData(0,0,w,h);
+  const pixels=source.data;
+  const brightness=Number($('brightness').value)/100;
+  const contrast=Number($('contrast').value)/100;
+  const saturation=Number($('saturation').value)/100;
+  for(let i=0;i<pixels.length;i+=4){
+    let r=pixels[i]*brightness, g=pixels[i+1]*brightness, b=pixels[i+2]*brightness;
+    r=(r-128)*contrast+128; g=(g-128)*contrast+128; b=(b-128)*contrast+128;
+    const luma=0.2126*r+0.7152*g+0.0722*b;
+    r=luma+(r-luma)*saturation;
+    g=luma+(g-luma)*saturation;
+    b=luma+(b-luma)*saturation;
+    pixels[i]=Math.max(0,Math.min(255,r));
+    pixels[i+1]=Math.max(0,Math.min(255,g));
+    pixels[i+2]=Math.max(0,Math.min(255,b));
+  }
+  const adjusted=document.createElement('canvas');
+  adjusted.width=w; adjusted.height=h;
+  adjusted.getContext('2d').putImageData(source,0,0);
+  canvas.width=w; canvas.height=h;
+  ctx.clearRect(0,0,w,h);
+  ctx.save();
+  if(activeFilter!=='none')ctx.filter=activeFilter;
+  ctx.drawImage(adjusted,0,0);
+  ctx.restore();
+  $('imageInfo').textContent=w+' × '+h+' px';
+}
+function commitAdjustments(){if(!hasImage())return;renderAdjustments();setBaseFromCanvas();activeFilter='none';document.querySelectorAll('#filterGrid button').forEach(b=>b.classList.toggle('selected',b.dataset.filter==='none'));$('brightness').value=100;$('contrast').value=100;$('saturation').value=100;['brightness','contrast','saturation'].forEach(id=>$(id+'Val').textContent='100%')}
+function drawImage(img){canvas.width=img.naturalWidth||img.width;canvas.height=img.naturalHeight||img.height;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0);setBaseFromCanvas();canvas.style.display='block';$('empty').style.display='none';$('downloadBtn').disabled=false;$('imageInfo').textContent=canvas.width+' × '+canvas.height+' px';$('newWidth').value=canvas.width;$('newHeight').value=canvas.height;setStatus('تم تحميل الصورة بنجاح')}
+function loadFile(file){if(!file||!file.type.startsWith('image/'))return;imageName=file.name;const img=new Image();img.onload=()=>{original=img;history=[];activeFilter='none';drawImage(img);$('undoBtn').disabled=true};img.src=URL.createObjectURL(file)}
+$('fileInput').addEventListener('change',e=>loadFile(e.target.files[0]));
+const dz=$('dropZone');dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.outline='2px solid #8b5cf6'});dz.addEventListener('dragleave',()=>dz.style.outline='');dz.addEventListener('drop',e=>{e.preventDefault();dz.style.outline='';loadFile(e.dataTransfer.files[0])});
+function activate(tab){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===tab));$('pageTitle').textContent=titles[tab][0];$('pageDesc').textContent=titles[tab][1]}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>activate(b.dataset.tab));document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>activate(b.dataset.go));
+function chooseFilter(button){if(!hasImage())return alert('ارفع صورة أولاً');activeFilter=button.dataset.filter;document.querySelectorAll('#filterGrid button').forEach(x=>x.classList.toggle('selected',x===button));renderAdjustments();setStatus('تم تطبيق فلتر '+button.textContent+' مباشرة')}
+$('filterGrid').querySelectorAll('button').forEach(b=>b.onclick=()=>chooseFilter(b));
+['brightness','contrast','saturation'].forEach(id=>$(id).oninput=()=>{$(id+'Val').textContent=$(id).value+'%';if(hasImage()){renderAdjustments();setStatus('معاينة مباشرة للتعديلات')}});
+
+// Commit the current live preview as the new source before a destructive operation.
+function beginDestructiveEdit(){if(!hasImage())return false;snapshot();commitAdjustments();return true}
+$('applyEnhance').onclick=()=>{if(!beginDestructiveEdit())return alert('ارفع صورة أولاً');const amount=Number($('sharpness').value)/100;const w=canvas.width,h=canvas.height;const src=ctx.getImageData(0,0,w,h),out=ctx.createImageData(w,h),a=src.data,b=out.data;const k=amount*0.9;for(let y=0;y<h;y++){for(let x=0;x<w;x++){let i=(y*w+x)*4;for(let c=0;c<3;c++){let center=a[i+c],left=a[(y*w+Math.max(0,x-1))*4+c],right=a[(y*w+Math.min(w-1,x+1))*4+c],up=a[(Math.max(0,y-1)*w+x)*4+c],down=a[(Math.min(h-1,y+1)*w+x)*4+c];b[i+c]=Math.max(0,Math.min(255,center*(1+4*k)-k*(left+right+up+down)))}b[i+3]=a[i+3]}}ctx.putImageData(out,0,0);setBaseFromCanvas();setStatus('تم تطبيق زيادة الحدة محلياً')};
+$('preset').onchange=()=>{if(!$('preset').value)return;const [w,h]=$('preset').value.split(',');$('newWidth').value=w;$('newHeight').value=h};
+$('newWidth').oninput=()=>{if($('keepRatio').checked&&canvas.width){$('newHeight').value=Math.round($('newWidth').value*canvas.height/canvas.width)}};
+$('applyResize').onclick=()=>{if(!beginDestructiveEdit())return alert('ارفع صورة أولاً');let w=+$('newWidth').value,h=+$('newHeight').value;if(!w||!h||w>12000||h>12000)return alert('أدخل أبعاداً صحيحة (حتى 12000 بكسل)');const tmp=document.createElement('canvas');tmp.width=w;tmp.height=h;tmp.getContext('2d').imageSmoothingQuality='high';tmp.getContext('2d').drawImage(canvas,0,0,w,h);canvas.width=w;canvas.height=h;ctx.drawImage(tmp,0,0);setBaseFromCanvas();$('imageInfo').textContent=w+' × '+h+' px';setStatus('تم تغيير أبعاد الصورة')};
+$('undoBtn').onclick=()=>{const prev=history.pop();if(!prev)return;const img=new Image();img.onload=()=>{canvas.width=img.width;canvas.height=img.height;ctx.drawImage(img,0,0);setBaseFromCanvas();$('imageInfo').textContent=canvas.width+' × '+canvas.height+' px';$('undoBtn').disabled=!history.length;setStatus('تم التراجع عن آخر تعديل')};img.src=prev};
+$('downloadBtn').onclick=()=>{if(!hasImage())return;renderAdjustments();const a=document.createElement('a');a.download=(imageName.replace(/\.[^.]+$/,'')||'tomy-edited')+'.png';a.href=canvas.toDataURL('image/png');a.click()};
+$('resetBtn').onclick=()=>{if(original){history=[];activeFilter='none';['brightness','contrast','saturation'].forEach(id=>$(id).value=100);['brightness','contrast','saturation'].forEach(id=>$(id+'Val').textContent='100%');drawImage(original);$('undoBtn').disabled=true;setStatus('تمت إعادة الصورة الأصلية')}else setStatus('ارفع صورة أولاً')};
+// ===== AI text-prompt editing via Hugging Face Space (sends the image, with explicit consent) =====
+const AI_DEFAULT_SPACE='multimodalart/Qwen-Image-Edit-Fast';
+try{$('aiSpace').value=localStorage.getItem('tomy_space')||AI_DEFAULT_SPACE}catch(e){$('aiSpace').value=AI_DEFAULT_SPACE}
+document.querySelectorAll('#promptPresets button').forEach(b=>b.onclick=()=>{$('prompt').value=b.dataset.p});
+function aiMsg(t,bad){const el=$('aiStatus');el.textContent=t;el.style.color=bad?'#f87171':''}
+function scaledBlob(maxSide){return new Promise(res=>{const k=Math.min(1,maxSide/Math.max(canvas.width,canvas.height));const w=Math.max(8,Math.round(canvas.width*k/8)*8),h=Math.max(8,Math.round(canvas.height*k/8)*8);const t=document.createElement('canvas');t.width=w;t.height=h;t.getContext('2d').drawImage(canvas,0,0,w,h);t.toBlob(res,'image/png')})}
+function pickImageUrl(v){if(!v)return null;if(typeof v==='string')return /^(https?:|data:image)/.test(v)?v:null;if(Array.isArray(v)){for(const x of v){const u=pickImageUrl(x);if(u)return u}return null}if(typeof v==='object')return pickImageUrl(v.url||v.path||v.image||v.value);return null}
+$('aiBtn').onclick=async()=>{
+  const p=$('prompt').value.trim();
+  if(!p)return alert('اكتب وصف التعديل أولاً');
+  if(!hasImage())return alert('ارفع صورة أولاً');
+  if(!$('aiConsent').checked)return alert('لازم توافق على إرسال الصورة إلى الخدمة الخارجية أولاً');
+  const space=$('aiSpace').value.trim()||AI_DEFAULT_SPACE, token=$('aiToken').value.trim();
+  if(token&&!token.startsWith('hf_'))return alert('التوكن غير صحيح (يبدأ بـ hf_)');
+  const btn=$('aiBtn');btn.disabled=true;aiMsg('جاري الاتصال بالنموذج...');let stage='تجهيز الصورة';
+  try{
+    commitAdjustments();
+    stage='تحميل مكتبة الاتصال من jsDelivr';
+    const mod=await import('https://cdn.jsdelivr.net/npm/@gradio/client@1/+esm');
+    const Client=mod.Client||(mod.default&&mod.default.Client);
+    if(!Client)throw new Error('تعذر تحميل مكتبة الاتصال');
+    stage='الاتصال بالـ Space ('+space+')';
+    const app=await Client.connect(space,token?{hf_token:token}:{});
+    const api=await app.view_api();
+    const names=Object.keys(api.named_endpoints||{});
+    if(!names.length)throw new Error('الـ Space لا يعرض واجهة API مسماة');
+    const ep=names.find(n=>/infer|edit/i.test(n))||names[0];
+    const params=api.named_endpoints[ep].parameters||[];
+    const blob=await scaledBlob(1024);
+    const file=mod.handle_file?mod.handle_file(blob):blob;
+    const args={};let promptSet=false,imageSet=false;
+    for(const q of params){
+      const n=q.parameter_name||q.label,kind=((q.component||'')+' '+(q.type&&q.type.type||'')+' '+(q.python_type&&q.python_type.type||'')).toLowerCase();
+      if(!imageSet&&/image|file/.test(kind)&&!/negative/i.test(n)){args[n]=file;imageSet=true}
+      else if(!promptSet&&/prompt|instruction/i.test(n)&&!/negative/i.test(n)){args[n]=p;promptSet=true}
+      else if(q.parameter_has_default)args[n]=q.parameter_default;
+      else args[n]='';
+    }
+    if(!imageSet||!promptSet)throw new Error('واجهة هذا الـ Space غير متوافقة (لا توجد خانة صورة/وصف واضحة)');
+    aiMsg('النموذج يعمل الآن... قد يستغرق حتى دقيقة ونصف.');
+    stage='تشغيل النموذج';
+    const res=await app.predict(ep,args);
+    const url=pickImageUrl(res.data);
+    if(!url)throw new Error('لم يرجع النموذج صورة');
+    stage='تحميل الصورة الناتجة';
+    let out;try{out=await (await fetch(url)).blob()}catch(_){out=null}
+    const img=new Image();
+    img.onload=()=>{snapshot();canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0);setBaseFromCanvas();$('imageInfo').textContent=canvas.width+' × '+canvas.height+' px';$('newWidth').value=canvas.width;$('newHeight').value=canvas.height;aiMsg('تم التعديل. استخدم «تراجع» لو النتيجة مش مناسبة.');setStatus('تم تعديل الصورة بالذكاء الاصطناعي')};
+    if(out)img.src=URL.createObjectURL(out);else{img.crossOrigin='anonymous';img.onerror=()=>aiMsg('تعذر تحميل الصورة الناتجة (حجب CORS). افتح الرابط يدوياً: '+url,true);img.src=url}
+    try{localStorage.setItem('tomy_space',space)}catch(e){}
+  }catch(e){
+    console.error(e);
+    const m=String((e&&e.message)||e);
+    if(/quota|gpu|limit|exceed/i.test(m))aiMsg('انتهت حصة الاستخدام المجانية. جرّب بعد قليل أو أضف توكن Hugging Face في الإعدادات المتقدمة.',true);
+    else aiMsg('فشلت الخطوة: «'+stage+'» — '+m+(/fetch/i.test(m)?' (مشكلة اتصال/حجب؛ افتح الموقع عبر http/https وليس file:// وعطّل مانع الإعلانات/VPN وجرّب).':'')+' — أو غيّر الـ Space من الإعدادات المتقدمة.',true);
+  }finally{btn.disabled=false;$('aiConsent').checked=false}
+};
+$('wmBtn').onclick=()=>{if(!beginDestructiveEdit())return alert('ارفع صورة أولاً');let x=+$('wmX').value,y=+$('wmY').value,w=+$('wmW').value,h=+$('wmH').value;if(w<1||h<1||x<0||y<0||x+w>canvas.width||y+h>canvas.height)return alert('تأكد أن المنطقة داخل حدود الصورة');const patchW=Math.min(w,Math.max(1,canvas.width-x)),patchH=Math.min(h,Math.max(1,canvas.height-y));const sx=Math.max(0,Math.min(canvas.width-patchW,x-patchW)),sy=Math.max(0,Math.min(canvas.height-patchH,y-patchH));const patch=ctx.getImageData(sx,sy,patchW,patchH);ctx.putImageData(patch,x,y);setBaseFromCanvas();setStatus('تمت معالجة المنطقة تقريبياً؛ راجع النتيجة')};
+$('bgBtn').onclick=async()=>{if(!hasImage())return alert('ارفع صورة أولاً');$('bgStatus').textContent='جاري تحميل نموذج إزالة الخلفية لأول مرة...';try{const mod=await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm');const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));const removeBackground=mod.default||mod.removeBackground;if(typeof removeBackground!=='function')throw new Error('تعذر تحميل دالة إزالة الخلفية من المكتبة');const result=await removeBackground(blob,{device:'cpu',model:'isnet_quint8',output:{format:'image/png',type:'foreground'}});const img=new Image();img.onload=()=>{snapshot();canvas.width=img.width;canvas.height=img.height;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0);setBaseFromCanvas();$('bgStatus').textContent='تمت إزالة الخلفية. حمّل النتيجة بصيغة PNG.';setStatus('تمت إزالة الخلفية')};img.src=URL.createObjectURL(result)}catch(e){$('bgStatus').textContent='تعذر تشغيل النموذج. جرّب تشغيل الموقع عبر خادم محلي وتأكد من اتصال الإنترنت.';console.error(e)}};
+</script>
+</body></html>
